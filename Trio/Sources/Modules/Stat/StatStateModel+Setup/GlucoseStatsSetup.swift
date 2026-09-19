@@ -165,17 +165,20 @@ extension Stat.StateModel {
         let (pStats, dStats) = await (percentileStats, distributionStats)
 
         dailyGlucosePercentileStats = pStats
+        // `uniqueKeysWithValues` traps on duplicate keys; two stats falling on the same day must not crash the app
         glucosePercentileCache = Dictionary(
-            uniqueKeysWithValues: pStats.map {
+            pStats.map {
                 (Calendar.current.startOfDay(for: $0.date), $0)
-            }
+            },
+            uniquingKeysWith: { _, latest in latest }
         )
 
         dailyGlucoseDistributionStats = dStats
         glucoseDistributionCache = Dictionary(
-            uniqueKeysWithValues: dStats.map {
+            dStats.map {
                 (Calendar.current.startOfDay(for: $0.date), $0)
-            }
+            },
+            uniquingKeysWith: { _, latest in latest }
         )
     }
 

@@ -199,7 +199,8 @@ extension Adjustments.StateModel {
     private func waitUntilDate(_ targetDate: Date) async {
         while Date() < targetDate {
             let timeInterval = targetDate.timeIntervalSince(Date())
-            let sleepDuration = min(timeInterval, 60.0)
+            // The target may pass between the loop check and here; a negative value would trap in `UInt64(...)`
+            let sleepDuration = max(0, min(timeInterval, 60.0))
             try? await Task.sleep(nanoseconds: UInt64(sleepDuration * 1_000_000_000))
         }
     }

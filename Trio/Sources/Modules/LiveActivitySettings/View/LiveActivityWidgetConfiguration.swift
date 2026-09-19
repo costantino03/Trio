@@ -328,7 +328,8 @@ struct LiveActivityWidgetConfiguration: BaseView {
 
     private func loadOrder() {
         if let savedItems = UserDefaults.standard.loadLiveActivityOrder() {
-            selectedItems = savedItems.count == 4 ? savedItems : savedItems + Array(repeating: nil, count: 4 - savedItems.count)
+            // Pad or trim to exactly 4 slots; a negative repeat count (more than 4 saved items) would trap
+            selectedItems = Array((savedItems + Array(repeating: nil, count: max(0, 4 - savedItems.count))).prefix(4))
         } else {
             selectedItems = LiveActivityItem.defaultItems
             saveOrder()

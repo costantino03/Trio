@@ -379,6 +379,24 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     /// - Parameter input: CalculationInput containing all necessary parameters
     /// - Returns: CalculationResult with detailed breakdown of the calculation
     func calculateInsulin(input: CalculationInput) async -> CalculationResult {
+        // Without a valid ISF and carb ratio (e.g. empty/unparsable therapy schedule) the divisions below would
+        // produce NaN (Decimal division by zero), which would then leak into the recommended bolus. Recommend nothing.
+        guard input.isf > 0, input.carbRatio > 0 else {
+            debug(.default, "Bolus calculation skipped: invalid ISF (\(input.isf)) or carb ratio (\(input.carbRatio))")
+            return CalculationResult(
+                insulinCalculated: 0,
+                factoredInsulin: 0,
+                wholeCalc: 0,
+                iobInsulinReduction: 0,
+                superBolusInsulin: 0,
+                targetDifference: 0,
+                targetDifferenceInsulin: 0,
+                fifteenMinutesInsulin: 0,
+                wholeCob: 0,
+                wholeCobInsulin: 0
+            )
+        }
+
         // insulin needed for the current blood glucose
         let targetDifference = input.currentBG - input.target
         debug(.default, "Target difference: \(targetDifference)")
@@ -468,6 +486,12 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
             // round calculated recommendation to allowed bolus increment
             insulinCalculated = apsManager.roundBolus(amount: insulinCalculated)
             debug(.default, "Final rounded insulin: \(insulinCalculated)")
+        }
+
+        // Last line of defense: never hand a non-finite dose to the UI / pump
+        if !insulinCalculated.isFinite {
+            debug(.default, "Non-finite insulin recommendation, resetting to 0")
+            insulinCalculated = 0
         }
 
         return CalculationResult(

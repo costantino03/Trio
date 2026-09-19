@@ -66,7 +66,8 @@ struct ComputedPumpHistoryEvent: Codable, Equatable, Identifiable {
 
         // Explicitly set started_at and date as required by history.js
         started_at = timestamp // This matches behavior of new Date(tz(timestamp))
-        date = UInt64(timestamp.timeIntervalSince1970 * 1000) // This matches behavior of started_at.getTime()
+        // This matches behavior of started_at.getTime(); clamped so a pre-1970 timestamp (e.g. .distantPast) cannot trap
+        date = UInt64(max(0, timestamp.timeIntervalSince1970 * 1000))
     }
 }
 
