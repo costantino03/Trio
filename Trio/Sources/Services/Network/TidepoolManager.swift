@@ -667,7 +667,11 @@ extension BaseTidepoolManager {
             ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
             ?? []
 
-        var currentRate: BasalProfileEntry = basalEntries[0]
+        // An empty basal profile must not crash the app
+        guard var currentRate: BasalProfileEntry = basalEntries.first else {
+            debug(.default, "Basal profile is empty, no current basal rate available")
+            return nil
+        }
 
         for (index, entry) in basalEntries.enumerated() {
             guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
@@ -676,26 +680,31 @@ extension BaseTidepoolManager {
             }
 
             let entryComponents = calendar.dateComponents([.hour, .minute, .second], from: entryTime)
-            let entryStartTime = calendar.date(
-                bySettingHour: entryComponents.hour!,
-                minute: entryComponents.minute!,
-                second: entryComponents.second!,
-                of: now
-            )!
+            guard
+                let hour = entryComponents.hour,
+                let minute = entryComponents.minute,
+                let second = entryComponents.second,
+                let entryStartTime = calendar.date(bySettingHour: hour, minute: minute, second: second, of: now)
+            else { continue }
 
             let entryEndTime: Date
             if index < basalEntries.count - 1,
                let nextEntryTime = TherapySettingsUtil.parseTime(basalEntries[index + 1].start)
             {
                 let nextEntryComponents = calendar.dateComponents([.hour, .minute, .second], from: nextEntryTime)
-                entryEndTime = calendar.date(
-                    bySettingHour: nextEntryComponents.hour!,
-                    minute: nextEntryComponents.minute!,
-                    second: nextEntryComponents.second!,
-                    of: now
-                )!
+                if let nextHour = nextEntryComponents.hour,
+                   let nextMinute = nextEntryComponents.minute,
+                   let nextSecond = nextEntryComponents.second,
+                   let nextStart = calendar.date(bySettingHour: nextHour, minute: nextMinute, second: nextSecond, of: now)
+                {
+                    entryEndTime = nextStart
+                } else {
+                    continue
+                }
+            } else if let endOfDay = calendar.date(byAdding: .day, value: 1, to: entryStartTime) {
+                entryEndTime = endOfDay
             } else {
-                entryEndTime = calendar.date(byAdding: .day, value: 1, to: entryStartTime)!
+                continue
             }
 
             if now >= entryStartTime, now < entryEndTime {

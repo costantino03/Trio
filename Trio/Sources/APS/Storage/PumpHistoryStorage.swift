@@ -235,7 +235,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     ) -> (duration: Int16, start: Date, end: Date) {
         guard !isScheduledBasal else { return (0, dose.startDate, dose.startDate) }
         return (
-            Int16(round((dose.endDate - dose.startDate).timeInterval / 60)),
+            Int16(saturating: round((dose.endDate - dose.startDate).timeInterval / 60)),
             dose.startDate,
             dose.endDate
         )

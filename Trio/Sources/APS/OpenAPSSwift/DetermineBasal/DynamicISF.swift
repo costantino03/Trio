@@ -68,7 +68,9 @@ enum DynamicISF {
 
         let insulinFactor: Decimal
         if preferences.useCustomPeakTime {
-            insulinFactor = 120 - profile.insulinPeakTime
+            // A peak time of 120 (allowed by the settings picker) would make this 0 and lead to a division by zero
+            // (NaN) in the Dynamic ISF / forecast math, failing every loop cycle. Keep it strictly positive.
+            insulinFactor = max(120 - profile.insulinPeakTime, 1)
         } else {
             switch profile.curve {
             case .rapidActing: insulinFactor = 120 - 65

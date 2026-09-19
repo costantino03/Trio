@@ -336,9 +336,11 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         if let overcalibration = overcalibration {
             return entries.map { entry in
                 var entry = entry
-                guard entry.glucose != nil else { return entry }
-                entry.glucose = Int(overcalibration(entry.glucose!))
-                entry.sgv = Int(overcalibration(entry.sgv!))
+                guard let glucose = entry.glucose else { return entry }
+                entry.glucose = Int(overcalibration(glucose))
+                if let sgv = entry.sgv {
+                    entry.sgv = Int(overcalibration(sgv))
+                }
                 return entry
             }
         } else {

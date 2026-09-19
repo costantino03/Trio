@@ -68,7 +68,17 @@ final class BaseCalibrationService: CalibrationService, Injectable {
         let ys = calibrations.map(\.y)
         let sum1 = average(multiply(xs, ys)) - average(xs) * average(ys)
         let sum2 = average(multiply(xs, xs)) - pow(average(xs), 2)
+
+        // If all calibrations share the same raw value the variance is 0 and the regression is undefined:
+        // fall back to the neutral slope instead of propagating NaN to every glucose reading.
+        guard sum2.isFinite, abs(sum2) > 1e-9 else {
+            return 1
+        }
+
         let slope = sum1 / sum2
+        guard slope.isFinite else {
+            return 1
+        }
 
         return min(max(slope, Config.minSlope), Config.maxSlope)
     }
@@ -102,6 +112,7 @@ final class BaseCalibrationService: CalibrationService, Injectable {
     }
 
     func removeLast() {
+        guard !calibrations.isEmpty else { return }
         calibrations.removeLast()
     }
 
@@ -114,6 +125,9 @@ final class BaseCalibrationService: CalibrationService, Injectable {
     }
 
     private func linearRegression(_ x: Int) -> Double {
-        (intercept + slope * Double(x)).clamped(Config.minValue ... Config.maxValue)
+        let value = intercept + slope * Double(x)
+        // Never let a non-finite value be clamped into a bogus 500 mg/dL reading
+        guard value.isFinite else { return Double(x) }
+        return value.clamped(Config.minValue ... Config.maxValue)
     }
 }

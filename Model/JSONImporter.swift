@@ -357,7 +357,7 @@ extension BloodGlucose {
         let glucoseEntry = GlucoseStored(context: context)
         glucoseEntry.id = UUID(uuidString: id) ?? UUID()
         glucoseEntry.date = dateString
-        glucoseEntry.glucose = Int16(glucoseValue)
+        glucoseEntry.glucose = Int16(clamping: glucoseValue)
         glucoseEntry.direction = direction?.rawValue
         glucoseEntry.isManual = type == "Manual"
         glucoseEntry.isUploadedToNS = true
@@ -392,7 +392,7 @@ extension PumpHistoryEvent {
             }
             let tempEntry = TempBasalStored(context: context)
             tempEntry.rate = NSDecimalNumber(decimal: rate)
-            tempEntry.duration = Int16(duration)
+            tempEntry.duration = Int16(clamping: duration)
             tempEntry.tempType = temp?.rawValue
             pumpEntry.tempBasal = tempEntry
         }
@@ -677,9 +677,9 @@ extension Determination: Codable {
         newOrefDetermination.minDelta = decimalToNSDecimalNumber(minDelta)
         newOrefDetermination.sensitivityRatio = decimalToNSDecimalNumber(sensitivityRatio)
         newOrefDetermination.expectedDelta = decimalToNSDecimalNumber(expectedDelta)
-        newOrefDetermination.cob = Int16(Int(cob ?? 0))
+        newOrefDetermination.cob = Int16(saturating: cob ?? 0)
         newOrefDetermination.smbToDeliver = units.map { NSDecimalNumber(decimal: $0) }
-        newOrefDetermination.carbsRequired = Int16(Int(carbsReq ?? 0))
+        newOrefDetermination.carbsRequired = Int16(saturating: carbsReq ?? 0)
         newOrefDetermination.isUploadedToNS = true
 
         if let predictions = predictions {

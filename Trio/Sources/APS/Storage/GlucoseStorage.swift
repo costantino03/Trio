@@ -253,7 +253,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     private func configureGlucoseEntry(_ entry: GlucoseStored, with glucose: BloodGlucose) {
         entry.id = UUID()
-        entry.glucose = Int16(glucose.glucose ?? 0)
+        entry.glucose = Int16(clamping: glucose.glucose ?? 0)
         entry.date = glucose.dateString
         entry.direction = glucose.direction?.rawValue
         entry.isUploadedToNS = false
@@ -336,7 +336,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
             let newItem = GlucoseStored(context: context)
             newItem.id = UUID()
             newItem.date = Date()
-            newItem.glucose = Int16(glucose)
+            newItem.glucose = Int16(clamping: glucose)
             newItem.isManual = true
             newItem.isUploadedToNS = false
             newItem.isUploadedToHealth = false

@@ -59,9 +59,9 @@ final class OpenAPS {
             newOrefDetermination.minDelta = self.decimalToNSDecimalNumber(determination.minDelta)
             newOrefDetermination.sensitivityRatio = self.decimalToNSDecimalNumber(determination.sensitivityRatio)
             newOrefDetermination.expectedDelta = self.decimalToNSDecimalNumber(determination.expectedDelta)
-            newOrefDetermination.cob = Int16(Int(determination.cob ?? 0))
+            newOrefDetermination.cob = Int16(saturating: determination.cob ?? 0)
             newOrefDetermination.smbToDeliver = determination.units.map { NSDecimalNumber(decimal: $0) }
-            newOrefDetermination.carbsRequired = Int16(Int(determination.carbsReq ?? 0))
+            newOrefDetermination.carbsRequired = Int16(saturating: determination.carbsReq ?? 0)
             newOrefDetermination.isUploadedToNS = false
 
             if let predictions = determination.predictions {

@@ -75,7 +75,10 @@ struct AppGroupSource: GlucoseSource {
 
         var results: [BloodGlucose] = []
 
-        for sgv in sgvs.prefix(count) {
+        for item in sgvs.prefix(count) {
+            // Subscripting an untyped `AnyObject` raises "unrecognized selector" for non-dictionary items,
+            // so make sure each reading really is a dictionary before touching it.
+            guard let sgv = item as? [String: Any] else { continue }
             guard
                 let glucose = sgv["Value"] as? Int,
                 let timestamp = sgv["DT"] as? String,

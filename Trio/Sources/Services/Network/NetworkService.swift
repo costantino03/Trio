@@ -18,7 +18,10 @@ struct NetworkService {
         URLSession.shared
             .dataTaskPublisher(for: request)
             .tryMap { data, response in
-                let code = (response as! HTTPURLResponse).statusCode
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw URLError(.badServerResponse)
+                }
+                let code = httpResponse.statusCode
                 guard 200 ..< 300 ~= code else {
                     throw NetworkError.badStatusCode(.init(statusCode: code))
                 }

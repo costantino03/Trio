@@ -50,9 +50,17 @@ class TrioRemoteControl: Injectable {
         let currentTime = Date().timeIntervalSince1970
         let timeDifference = currentTime - commandPayload.timestamp
 
+        // A NaN / infinite timestamp would slip past the window checks below and trap in `Int(timeDifference)`
+        guard timeDifference.isFinite else {
+            await logError("Command rejected: the message has an invalid timestamp.", payload: commandPayload)
+            return
+        }
+        // Bounded, so `Int(...)` in the log messages can never overflow
+        let timeDifferenceSeconds = Int(max(-1e9, min(1e9, timeDifference)))
+
         if timeDifference > timeWindow {
             await logError(
-                "Command rejected: the message is too old (sent \(Int(timeDifference)) seconds ago).",
+                "Command rejected: the message is too old (sent \(timeDifferenceSeconds) seconds ago).",
                 payload: commandPayload
             )
             return
@@ -66,7 +74,7 @@ class TrioRemoteControl: Injectable {
 
         debug(
             .remoteControl,
-            "Command successfully decrypted and authenticated. Time difference: \(Int(timeDifference)) seconds."
+            "Command successfully decrypted and authenticated. Time difference: \(timeDifferenceSeconds) seconds."
         )
 
         switch commandPayload.commandType {
