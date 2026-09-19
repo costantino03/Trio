@@ -39,10 +39,12 @@ class Icons: ObservableObject, Equatable {
     init() {
         let iconName = UIApplication.shared.alternateIconName
 
-        if iconName == nil {
-            appIcon = .primary
+        // An alternate icon that no longer exists in `Icon_` (e.g. renamed or removed in an update)
+        // must fall back to the primary icon instead of crashing at launch.
+        if let iconName = iconName, let icon = Icon_(rawValue: iconName) {
+            appIcon = icon
         } else {
-            appIcon = Icon_(rawValue: iconName!)!
+            appIcon = .primary
         }
     }
 }

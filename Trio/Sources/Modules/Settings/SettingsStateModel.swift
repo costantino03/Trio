@@ -100,7 +100,10 @@ extension Settings.StateModel: ServiceOnboardingDelegate {
     }
 
     func serviceOnboarding(didOnboardService service: Service) {
-        precondition(service.isOnboarded)
+        // Do not crash the app if a service reports itself as onboarded before it actually is
+        if !service.isOnboarded {
+            debug(.nightscout, "Service with identifier \(service.pluginIdentifier) reported onboarded but isOnboarded is false")
+        }
         debug(.nightscout, "Service with identifier \(service.pluginIdentifier) onboarded")
     }
 }

@@ -211,7 +211,8 @@ enum IobCalculation {
         // window (diaAgo, now] over the sorted entries selects the same elements,
         // in the same order, as the previous full-array filter
         let start = partitionPoint(of: prepared.entries, while: { $0 <= diaAgo })
-        let end = partitionPoint(of: prepared.entries, while: { $0 <= now })
+        // `max` guarantees a valid range even if the entries were ever not sorted (start > end would trap)
+        let end = max(start, partitionPoint(of: prepared.entries, while: { $0 <= now }))
 
         for entry in prepared.entries[start ..< end] {
             let minsAgo = (now.timeIntervalSince(entry.timestamp) / 60.0).rounded()

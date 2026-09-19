@@ -124,9 +124,9 @@ extension AddCarbs {
 
                 for sel in presetArray {
                     if sel.dish == each {
-                        carbs_ += (sel.carbs)! as Decimal
-                        fat_ += (sel.fat)! as Decimal
-                        protein_ += (sel.protein)! as Decimal
+                        carbs_ += sel.carbs?.decimalValue ?? 0
+                        fat_ += sel.fat?.decimalValue ?? 0
+                        protein_ += sel.protein?.decimalValue ?? 0
                         break
                     }
                 }

@@ -159,12 +159,13 @@ func bgAndTrend(
     var directionText: String?
     if let direction = context.state.direction {
         if size == .compact || size == .minimal {
-            directionText = String(direction[direction.startIndex ... direction.startIndex])
+            // `prefix(1)` is safe for an empty string, unlike subscripting `startIndex ... startIndex`
+            directionText = String(direction.prefix(1))
         } else {
             directionText = direction
         }
 
-        characters += directionText!.count
+        characters += directionText?.count ?? 0
     }
 
     let spacing: CGFloat

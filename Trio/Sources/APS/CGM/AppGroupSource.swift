@@ -197,16 +197,17 @@ struct AppGroupSource: GlucoseSource {
     }
 
     private func parseDate(_ timestamp: String) -> Date? {
-        // timestamp looks like "/Date(1462404576000)/"
-        guard let re = try? NSRegularExpression(pattern: "\\((.*)\\)"),
-              let match = re.firstMatch(in: timestamp, range: NSMakeRange(0, timestamp.count))
+        // timestamp looks like "/Date(1462404576000)/", possibly with a UTC offset: "/Date(1462404576000+0200)/"
+        guard let re = try? NSRegularExpression(pattern: "\\((-?\\d+)"),
+              let match = re.firstMatch(in: timestamp, range: NSRange(location: 0, length: (timestamp as NSString).length)),
+              match.numberOfRanges > 1,
+              match.range(at: 1).location != NSNotFound,
+              let milliseconds = Double((timestamp as NSString).substring(with: match.range(at: 1)))
         else {
             return nil
         }
 
-        let matchRange = match.range(at: 1)
-        let epoch = Double((timestamp as NSString).substring(with: matchRange))! / 1000
-        return Date(timeIntervalSince1970: epoch)
+        return Date(timeIntervalSince1970: milliseconds / 1000)
     }
 
     func sourceInfo() -> [String: Any]? {
